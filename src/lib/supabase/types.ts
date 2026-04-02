@@ -27,6 +27,7 @@ export interface Database {
           stripe_customer_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       analyses: {
         Row: {
@@ -63,6 +64,7 @@ export interface Database {
           processing_ms?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["analyses"]["Insert"]>;
+        Relationships: [];
       };
       recommendations: {
         Row: {
@@ -87,8 +89,11 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["recommendations"]["Insert"]>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }
 
