@@ -15,7 +15,7 @@ const stages = [
 const totalDuration = stages.reduce((sum, s) => sum + s.duration, 0);
 
 interface AnalysisLoadingProps {
-  analysisId: string;
+  analysisId: string | null;
   onComplete: () => void;
 }
 
@@ -44,8 +44,9 @@ export function AnalysisLoading({ analysisId, onComplete }: AnalysisLoadingProps
     };
   }, []);
 
-  // Poll for completion
+  // Poll for completion — skip until analysisId is available
   const poll = useCallback(async () => {
+    if (!analysisId) return;
     try {
       const res = await fetch(`/api/analysis/${analysisId}`);
       if (!res.ok) return;
@@ -61,11 +62,12 @@ export function AnalysisLoading({ analysisId, onComplete }: AnalysisLoadingProps
   }, [analysisId, onComplete, router]);
 
   useEffect(() => {
+    if (!analysisId) return;
     pollRef.current = setInterval(poll, 2000);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [poll]);
+  }, [poll, analysisId]);
 
   // Progress calculation
   const elapsed = stages

@@ -15,6 +15,7 @@ export function AnalyzeClient() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleUploadComplete = (url: string) => {
     setImageUrl(url);
@@ -23,13 +24,20 @@ export function AnalyzeClient() {
 
   const handlePreferencesComplete = async (prefs: Record<string, unknown>) => {
     setPreferences(prefs);
+    setError(null);
     setStep("analyzing");
+
+    const { category, ...restPrefs } = prefs;
 
     try {
       const response = await fetch("/api/analysis/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl, preferences: prefs }),
+        body: JSON.stringify({
+          imageUrl,
+          category: category || "full",
+          preferences: restPrefs,
+        }),
       });
 
       const data = await response.json();
@@ -39,8 +47,9 @@ export function AnalyzeClient() {
       }
 
       setAnalysisId(data.analysisId);
-    } catch (error) {
-      console.error("Failed to start analysis:", error);
+    } catch (err) {
+      console.error("Failed to start analysis:", err);
+      setError(err instanceof Error ? err.message : "Failed to start analysis. Please try again.");
       setStep("preferences");
     }
   };
@@ -77,6 +86,11 @@ export function AnalyzeClient() {
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
           >
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
             <PreferencesForm
               onComplete={handlePreferencesComplete}
               onBack={handleBackToUpload}
@@ -84,7 +98,7 @@ export function AnalyzeClient() {
           </motion.div>
         )}
 
-        {step === "analyzing" && analysisId && (
+        {step === "analyzing" && (
           <motion.div
             key="analyzing"
             initial={{ opacity: 0, x: -20 }}
